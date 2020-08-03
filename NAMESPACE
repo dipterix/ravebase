@@ -3,6 +3,7 @@
 S3method(print,"rave-context")
 export(LFP_electrode)
 export(RAVERepository)
+export(async_work)
 export(exit_main)
 export(from_rave_context)
 export(loaded_rave_repository)

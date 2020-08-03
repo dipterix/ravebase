@@ -1,4 +1,57 @@
-async_work <- function(X, FUN, ..., .globals, .name = 'Untitled', .rs = FALSE, .wait = TRUE, chunk_size = Inf){
+#' Execute parallel job in another session
+#' @description Similar to \code{lapply} but run in parallel
+#' @param X vector
+#' @param FUN R function
+#' @param ... further arguments to \code{FUN}
+#' @param .globals named list of global variables to be used by \code{FUN}
+#' @param .name job or progress name
+#' @param .rs whether to use \code{'RStudio'} job scheduler
+#' @param .wait whether to wait for the results
+#' @param chunk_size maximum chunk size per job, must be \code{Inf} if
+#' \code{.wait} is false
+#' @return If \code{.wait} is true, then return list of results of \code{FUN}
+#' being applied to each element of \code{X}, otherwise returns a function
+#' that can be used to track and obtain the results.
+#' @details Unlike \code{future} package functions, where the global variables
+#' can be automatically determined, you must specify the variables to be used
+#' by \code{FUN}. In addition, you may only assume base packages are loaded
+#' when executing functions. Therefore it's recommended to call functions
+#' with package names like \code{utils::read.csv} explicitly instead of
+#' \code{read.csv} etc. See examples for details.
+#'
+#' The main feature of \code{async_work} is that there is no backward
+#' communication between main and slave process, hence the setup time is
+#' faster than \code{future} \code{multiprocess}. There is no memory leak
+#' issue caused by \code{forked} process, hence it's designed for process
+#' that writes something to disk and doesn't require too much feed-backs.
+#' However, using this function requires to specify \code{.globals}, which is
+#' inconvenient for beginners.
+#'
+#' @examples
+#'
+#' if(interactive()){
+#'   a <- 1
+#'   f <- function(x, b){
+#'     Sys.sleep(1)
+#'     list(
+#'       result = x + a + b,
+#'       loaded = names(utils::sessionInfo()$loaded),
+#'       attached = search()
+#'     )
+#'   }
+#'
+#'   # `a` is a "global" variable because `f` must need to look up for its
+#'   # declaring environment, hence must be specified in `.globals`
+#'   #
+#'   res <- async_work(1:10, f, b = 3, .globals = list(a = a))
+#'
+#'   # Only base libraries are attached
+#'   res[[1]]
+#' }
+#'
+#' @export
+async_work <- function(X, FUN, ..., .globals = NULL, .name = 'Untitled',
+                       .rs = FALSE, .wait = TRUE, chunk_size = Inf){
   stopifnot2(!length(.globals) || (
       is.list(.globals) && length(names(.globals)) == length(.globals) &&
         (!'' %in% names(.globals))
@@ -49,7 +102,7 @@ async_work <- function(X, FUN, ..., .globals, .name = 'Untitled', .rs = FALSE, .
         code <- fs[[ii]]()
         if(code < 0){
           finished[[ii]] <<- 2
-          code <- paste(attr(x, 'rs_exec_error'), collapse = '\n')
+          code <- paste(attr(code, 'rs_exec_error'), collapse = '\n')
           rave_fatal(code)
         }
         if(code == 0){
