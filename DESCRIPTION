@@ -28,7 +28,7 @@ Imports:
     cli,
     stringr
 Suggests:
-    shiny
+    shiny,
+    testthat
 Remotes:
     github::beauchamplab/raveio
-
