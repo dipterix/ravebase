@@ -38,6 +38,8 @@ will be the same}
 
 \item{\code{preload_electrodes}}{get or set default electrodes to be loaded,
 mainly used internally by \code{link{rave_load}}.}
+
+\item{\code{project}}{\code{\link{RAVEProject}} instance}
 }
 \if{html}{\out{</div>}}
 }
@@ -51,6 +53,14 @@ mainly used internally by \code{link{rave_load}}.}
 \item \href{#method-epoch_continuous_signals}{\code{RAVERepository$epoch_continuous_signals()}}
 \item \href{#method-clear_cache}{\code{RAVERepository$clear_cache()}}
 \item \href{#method-clear_memory}{\code{RAVERepository$clear_memory()}}
+\item \href{#method-get_meta}{\code{RAVERepository$get_meta()}}
+\item \href{#method-get_valid_electrodes}{\code{RAVERepository$get_valid_electrodes()}}
+\item \href{#method-get_loaded_electrodes}{\code{RAVERepository$get_loaded_electrodes()}}
+\item \href{#method-get_power}{\code{RAVERepository$get_power()}}
+\item \href{#method-get_phase}{\code{RAVERepository$get_phase()}}
+\item \href{#method-get_voltage}{\code{RAVERepository$get_voltage()}}
+\item \href{#method-get_sample_rate}{\code{RAVERepository$get_sample_rate()}}
+\item \href{#method-get_preload_info}{\code{RAVERepository$get_preload_info()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -212,5 +222,173 @@ call \code{clear_memory} for each electrodes loaded
 \if{html}{\out{<div class="r">}}\preformatted{RAVERepository$clear_memory()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-get_meta}{}}}
+\subsection{Method \code{get_meta()}}{
+get meta data
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_meta(
+  name = c("electrodes", "frequencies", "time_points", "trials")
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{meta type name, choices are \code{'electrode'},
+\code{'frequencies'}, \code{'time_points'}, \code{'trials'}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Data frames of corresponding meta data
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_valid_electrodes"></a>}}
+\if{latex}{\out{\hypertarget{method-get_valid_electrodes}{}}}
+\subsection{Method \code{get_valid_electrodes()}}{
+get all valid electrode numbers for current subject
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_valid_electrodes(electrodes)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{electrodes}}{integers to filter, if missing then default to all
+possible electrodes}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Valid electrode numbers
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_loaded_electrodes"></a>}}
+\if{latex}{\out{\hypertarget{method-get_loaded_electrodes}{}}}
+\subsection{Method \code{get_loaded_electrodes()}}{
+get electrode numbers to be loaded
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_loaded_electrodes()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_power"></a>}}
+\if{latex}{\out{\hypertarget{method-get_power}{}}}
+\subsection{Method \code{get_power()}}{
+epoch power data of pre-specified electrodes
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_power(.old = FALSE, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{.old}}{whether use 'RAVE' 1.0 format}
+
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+if \code{.old} is true, return \code{\link[raveio]{ECoGTensor}}
+instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_phase"></a>}}
+\if{latex}{\out{\hypertarget{method-get_phase}{}}}
+\subsection{Method \code{get_phase()}}{
+epoch phase data of pre-specified electrodes
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_phase(.old = FALSE, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{.old}}{whether use 'RAVE' 1.0 format}
+
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+if \code{.old} is true, return \code{\link[raveio]{ECoGTensor}}
+instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_voltage"></a>}}
+\if{latex}{\out{\hypertarget{method-get_voltage}{}}}
+\subsection{Method \code{get_voltage()}}{
+epoch voltage data of pre-specified electrodes
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_voltage(.old = FALSE, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{.old}}{whether use 'RAVE' 1.0 format}
+
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+if \code{.old} is true, return \code{\link[raveio]{Tensor}}
+instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_sample_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-get_sample_rate}{}}}
+\subsection{Method \code{get_sample_rate()}}{
+get sampling frequency
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_sample_rate(
+  type = c("ECoG", "LFP", "Spike", "EEG"),
+  time_freq = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{electrode signal type, choices are \code{'ECoG'},
+\code{'LFP'}, \code{'Spike'}, \code{'EEG'}}
+
+\item{\code{time_freq}}{whether should return sample rates after time-frequency
+decomposition (e.g. down-sampled rate after wavelet)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+if \code{time_freq} is true, return power or phase sample rate,
+otherwise return voltage signal sample rate. If there is no such
+electrode signal type, for example, \code{type='Spike'} but no spike
+signals, then return \code{NA}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_preload_info"></a>}}
+\if{latex}{\out{\hypertarget{method-get_preload_info}{}}}
+\subsection{Method \code{get_preload_info()}}{
+get information when creating the repository
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RAVERepository$get_preload_info()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A list containing electrode to analyze, epoch and reference table
+names, time range of the analysis, time index for power and phase,
+wavelet frequencies and trial condition types.
+}
 }
 }

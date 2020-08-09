@@ -7,7 +7,7 @@
 #' @param .name job or progress name
 #' @param .rs whether to use \code{'RStudio'} job scheduler
 #' @param .wait whether to wait for the results
-#' @param chunk_size maximum chunk size per job, must be \code{Inf} if
+#' @param .chunk_size maximum chunk size per job, must be \code{Inf} if
 #' \code{.wait} is false
 #' @return If \code{.wait} is true, then return list of results of \code{FUN}
 #' being applied to each element of \code{X}, otherwise returns a function
@@ -51,7 +51,7 @@
 #'
 #' @export
 async_work <- function(X, FUN, ..., .globals = NULL, .name = 'Untitled',
-                       .rs = FALSE, .wait = TRUE, chunk_size = Inf){
+                       .rs = FALSE, .wait = TRUE, .chunk_size = Inf){
   stopifnot2(!length(.globals) || (
       is.list(.globals) && length(names(.globals)) == length(.globals) &&
         (!'' %in% names(.globals))
@@ -59,8 +59,8 @@ async_work <- function(X, FUN, ..., .globals = NULL, .name = 'Untitled',
     msg = '.globals must be a named list'
   )
 
-  if(chunk_size < Inf && !.wait){
-    rave_fatal('async_work .want=FALSE, then chunk_size must be `Inf`')
+  if(.chunk_size < Inf && !.wait){
+    rave_fatal('async_work .want=FALSE, then .chunk_size must be `Inf`')
   }
 
   n <- length(X)
@@ -72,12 +72,19 @@ async_work <- function(X, FUN, ..., .globals = NULL, .name = 'Untitled',
   nworkers <- rave_options('max_worker')
   nworkers <- min(nworkers, n)
   # partition X
-  chunk_size <- max(min(chunk_size, ceiling(n/nworkers)), 1)
-  njobs <- ceiling(n / chunk_size)
-  mat <- c(seq_along(X), rep(NA, njobs * chunk_size - n))
-  dim(mat) <- c(njobs, chunk_size)
+  .chunk_size <- max(min(.chunk_size, ceiling(n/nworkers)), 1)
+  njobs <- ceiling(n / .chunk_size)
+  mat <- c(seq_along(X), rep(NA, njobs * .chunk_size - n))
+  dim(mat) <- c(njobs, .chunk_size)
 
-  progress <- dipsaus::progress2(.name, max = njobs * .wait + 2, shiny_auto_close = TRUE, quiet = !.wait)
+  progress <-
+    dipsaus::progress2(
+      .name,
+      max = njobs * .wait + 2,
+      shiny_auto_close = TRUE,
+      quiet = !.wait,
+      log = rave_debug
+    )
 
   progress$inc('Process data...')
 
@@ -169,4 +176,4 @@ async_work <- function(X, FUN, ..., .globals = NULL, .name = 'Untitled',
 # res <- async_work(1:100, function(x){
 #   Sys.sleep(0.1)
 #   x + 1
-# }, .globals = NULL, .wait = TRUE, chunk_size = 6)
+# }, .globals = NULL, .wait = TRUE, .chunk_size = 6)

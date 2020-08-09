@@ -326,7 +326,7 @@ RAVERepository <- R6::R6Class(
         before_onset = before_onset,
         after_onset = after_onset,
         method = method
-      ), .wait = TRUE, chunk_size = 4,
+      ), .wait = TRUE, .chunk_size = 4,
       .name = sprintf('Loading %s (%s)', self$subject$subject_id, dtype))
 
       # dipsaus::make_forked_clusters(rave_options('max_worker'))
@@ -367,7 +367,152 @@ RAVERepository <- R6::R6Class(
       for(el in nms){
         self$electrodes[[el]]$clear_memory()
       }
+    },
+
+
+    #' @description get meta data
+    #' @param name meta type name, choices are \code{'electrode'},
+    #' \code{'frequencies'}, \code{'time_points'}, \code{'trials'}
+    #' @return Data frames of corresponding meta data
+    get_meta = function(name = c('electrodes', 'frequencies', 'time_points', 'trials')){
+      name <- match.arg(name)
+      switch(
+        name,
+        'electrodes' = {
+          elec <- self$subject$meta_data(meta_type = 'electrodes')
+          refs <- self$reference_table
+          merge(elec, refs, all.x = TRUE, by = 'Electrode')
+        },
+        'frequencies' = {
+          self$subject$meta_data(meta_type = 'frequencies')
+        },
+        'time_points' = {
+          self$subject$meta_data(meta_type = 'time_points')
+        },
+        'trials' = {
+          self$epoch$table
+        }
+      )
+    },
+
+    #' @description get all valid electrode numbers for current subject
+    #' @param electrodes integers to filter, if missing then default to all
+    #' possible electrodes
+    #' @return Valid electrode numbers
+    get_valid_electrodes = function(electrodes){
+      if(missing(electrodes)){
+        electrodes <- self$subject$electrodes
+      }
+      electrodes[
+        !electrodes %in% self$ignored_electrodes &
+        electrodes %in% self$subject$electrodes
+      ]
+    },
+
+    #' @description get electrode numbers to be loaded
+    get_loaded_electrodes = function(){
+      self$preload_electrodes
+    },
+
+    #' @description epoch power data of pre-specified electrodes
+    #' @param .old whether use 'RAVE' 1.0 format
+    #' @param ... ignored
+    #' @return if \code{.old} is true, return \code{\link[raveio]{ECoGTensor}}
+    #' instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+    get_power = function(.old = FALSE, ...){
+      electrodes <- self$preload_electrodes
+      re <- self$epoch_continuous_signals(electrodes = electrodes, dtype = 'power')
+      if(.old){
+        re <- raveio::lazyarray_to_tensor(re, drop_partition = TRUE)
+        re <- re$subset(Electrode ~ Electrode %in% electrodes, drop = FALSE, data_only = FALSE)
+      }
+      re
+    },
+
+    #' @description epoch phase data of pre-specified electrodes
+    #' @param .old whether use 'RAVE' 1.0 format
+    #' @param ... ignored
+    #' @return if \code{.old} is true, return \code{\link[raveio]{ECoGTensor}}
+    #' instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+    get_phase = function(.old = FALSE, ...){
+      electrodes <- self$preload_electrodes
+      re <- self$epoch_continuous_signals(electrodes = electrodes, dtype = 'phase')
+      if(.old){
+        re <- raveio::lazyarray_to_tensor(re, drop_partition = TRUE)
+        re <- re$subset(Electrode ~ Electrode %in% electrodes, drop = FALSE, data_only = FALSE)
+      }
+      re
+    },
+
+    #' @description epoch voltage data of pre-specified electrodes
+    #' @param .old whether use 'RAVE' 1.0 format
+    #' @param ... ignored
+    #' @return if \code{.old} is true, return \code{\link[raveio]{Tensor}}
+    #' instance, otherwise return \code{\link[lazyarray]{lazyarray}}
+    get_voltage = function(.old = FALSE, ...){
+      electrodes <- self$preload_electrodes
+      re <- self$epoch_continuous_signals(electrodes = electrodes, dtype = 'voltage')
+      if(.old){
+        re <- raveio::lazyarray_to_tensor(re, drop_partition = TRUE)
+        re <- re$subset(Electrode ~ Electrode %in% electrodes, drop = FALSE, data_only = FALSE)
+      }
+      re
+    },
+
+    #' @description get sampling frequency
+    #' @param type electrode signal type, choices are \code{'ECoG'},
+    #' \code{'LFP'}, \code{'Spike'}, \code{'EEG'}
+    #' @param time_freq whether should return sample rates after time-frequency
+    #' decomposition (e.g. down-sampled rate after wavelet)
+    #' @return if \code{time_freq} is true, return power or phase sample rate,
+    #' otherwise return voltage signal sample rate. If there is no such
+    #' electrode signal type, for example, \code{type='Spike'} but no spike
+    #' signals, then return \code{NA}
+    get_sample_rate = function(type = c('ECoG', 'LFP', 'Spike', 'EEG'), time_freq = FALSE){
+      type <- match.arg(type)
+      if(time_freq){
+        return(self$subject$power_sample_rate)
+      }
+      # voltage data
+      e_type <- self$subject$electrode_types
+      srates <- self$subject$raw_sample_rates
+      if(type %in% c('ECoG', 'LFP')){
+        srates <- srates[e_type %in% c('ECoG', 'LFP')]
+      } else {
+        srates <- srates[e_type %in% type]
+      }
+      if(length(srates)){
+        return(srates[[1]])
+      } else {
+        return(NA)
+      }
+    },
+
+    #' @description get information when creating the repository
+    #' @return A list containing electrode to analyze, epoch and reference table
+    #' names, time range of the analysis, time index for power and phase,
+    #' wavelet frequencies and trial condition types.
+    get_preload_info = function(){
+      re <- dipsaus::fastmap2()
+      re$electrodes <- self$preload_electrodes
+
+      re$epoch_name <- self$epoch$name
+      re$reference_name <- self$reference_name
+
+      before_onset <- -self$time_range[1]
+      after_onset <- self$time_range[2]
+      srate_power <- self$subject$power_sample_rate
+      re$time_points_power <- seq.int(- ceiling(before_onset * srate_power), ceiling(after_onset * srate_power))
+      re$time_points_phase <- re$time_points_power
+
+      re$frequencies <- self$subject$meta_data('frequencies')$Frequency
+      re$condition <- unique(self$epoch$table$Condition)
+
+      re
     }
+
+
+
   ),
   active = list(
 
@@ -394,6 +539,11 @@ RAVERepository <- R6::R6Class(
         private$default_electrodes <- v
       }
       private$default_electrodes
+    },
+
+    #' @field project \code{\link{RAVEProject}} instance
+    project = function(){
+      self$subject$project
     }
   )
 )
