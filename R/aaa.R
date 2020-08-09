@@ -39,18 +39,13 @@ hard_deprecated <- function(){
 
 # --------------------------------- Misc -------------------------------
 
-# FIXME
+# FIXME?
 
-save_meta <- raveio:::save_meta
-load_meta <- raveio:::load_meta
-RAVESubject <- raveio:::RAVESubject
-RAVEProject <- raveio:::RAVEProject
-RAVEPreprocessSettings <- raveio:::RAVEPreprocessSettings
-RAVEEpoch <- raveio:::RAVEEpoch
-as_rave_subject <- raveio:::as_rave_subject
-as_rave_project <- raveio:::as_rave_project
-rand_string <- raveio:::rand_string
-# LFP_electrode <- raveio:::LFP_electrode
+save_meta <- raveio::save_meta2
+load_meta <- raveio::load_meta2
+rand_string <- function(length = 50){
+  paste(sample(c(letters, LETTERS, 0:9), length, replace = TRUE), collapse = '')
+}
 
 
 

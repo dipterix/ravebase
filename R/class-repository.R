@@ -72,7 +72,7 @@ RAVERepository <- R6::R6Class(
   classname = 'RAVERepository',
   cloneable = FALSE,
   private = list(
-    power = NULL
+    default_electrodes = NULL
   ),
   public = list(
 
@@ -122,10 +122,11 @@ RAVERepository <- R6::R6Class(
       electrodes = subject$electrodes
       electrode_types = subject$electrode_types
 
+      private$default_electrodes <- electrodes[! electrodes %in% self$ignored_electrodes]
+
       generators = sapply(unique(electrode_types), function(ty){
         get0(sprintf('%s_electrode', ty), ifnotfound = Continuous_Electrode)
       }, simplify = FALSE, USE.NAMES = TRUE)
-
 
       li = lapply(seq_along(electrodes), function(ii){
         e = electrodes[[ii]]
@@ -271,7 +272,7 @@ RAVERepository <- R6::R6Class(
       if(is.null(valid)){ return(NULL) }
       all_electrodes <- self$subject$electrodes
       if(!length(electrodes)){
-        electrodes = all_electrodes
+        electrodes = self$preload_electrodes
       }
       ignored_electrodes = self$ignored_electrodes
       electrodes = as.integer(electrodes[(!electrodes %in% ignored_electrodes) &
@@ -381,6 +382,18 @@ RAVERepository <- R6::R6Class(
         time_range = self$time_range,
         wavelet = self$subject$preprocess_settings$wavelet_params
       ))
+    },
+
+
+    #' @field preload_electrodes get or set default electrodes to be loaded,
+    #' mainly used internally by \code{link{rave_load}}.
+    preload_electrodes = function(v){
+      if(!missing(v)){
+        v <- v[v %in% self$subject$electrodes]
+        v <- v[!v %in% self$ignored_electrodes]
+        private$default_electrodes <- v
+      }
+      private$default_electrodes
     }
   )
 )

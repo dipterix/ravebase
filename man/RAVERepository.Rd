@@ -35,6 +35,9 @@ Do not create instance directly, use
 \item{\code{signature}}{unique signature for repository; if subject ID,
 reference table, epoch table, and time range are the same, signatures
 will be the same}
+
+\item{\code{preload_electrodes}}{get or set default electrodes to be loaded,
+mainly used internally by \code{link{rave_load}}.}
 }
 \if{html}{\out{</div>}}
 }

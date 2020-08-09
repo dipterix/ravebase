@@ -75,8 +75,8 @@ Continuous_Electrode <- R6::R6Class(
       stopifnot2(self$exists, msg = sprintf('Electrode %s is invalid', self$number))
 
       if(persist){
-        if(!is.null(private$persisted_voltage_unref)){
-          return(private$persisted_voltage_unref)
+        if(!is.null(private$persisted_voltage_unref[[block]])){
+          return(private$persisted_voltage_unref[[block]])
         }
       }
 
@@ -108,8 +108,8 @@ Continuous_Electrode <- R6::R6Class(
       }
 
       if(persist){
-        private$persisted_voltage_unref <- re[]
-        return(private$persisted_voltage_unref)
+        private$persisted_voltage_unref[[block]] <- re[]
+        return(private$persisted_voltage_unref[[block]])
       }
 
       re
@@ -128,8 +128,8 @@ Continuous_Electrode <- R6::R6Class(
       stopifnot2(self$exists, msg = sprintf('Electrode %s is invalid', self$number))
 
       if(persist){
-        if(!is.null(private$persisted_power_unref)){
-          return(private$persisted_power_unref)
+        if(!is.null(private$persisted_power_unref[[block]])){
+          return(private$persisted_power_unref[[block]])
         }
       }
 
@@ -164,14 +164,14 @@ Continuous_Electrode <- R6::R6Class(
 
         re <- re[,,1, drop = FALSE] ^ 2
         dim(re) <- dim(re)[1:2]
-        private$persisted_power_unref <- re
+        private$persisted_power_unref[[block]] <- re
         return(re)
 
       }
 
       if(persist){
-        private$persisted_power_unref <- re[]
-        return(private$persisted_power_unref)
+        private$persisted_power_unref[[block]] <- re[]
+        return(private$persisted_power_unref[[block]])
       }
 
       re
@@ -190,8 +190,8 @@ Continuous_Electrode <- R6::R6Class(
       stopifnot2(self$exists, msg = sprintf('Electrode %s is invalid', self$number))
 
       if(persist){
-        if(!is.null(private$persisted_phase_unref)){
-          return(private$persisted_phase_unref)
+        if(!is.null(private$persisted_phase_unref[[block]])){
+          return(private$persisted_phase_unref[[block]])
         }
       }
 
@@ -226,14 +226,14 @@ Continuous_Electrode <- R6::R6Class(
 
         re <- re[,,2, drop = FALSE]
         dim(re) <- dim(re)[1:2]
-        private$persisted_phase_unref <- re
+        private$persisted_phase_unref[[block]] <- re
         return(re)
 
       }
 
       if(persist){
-        private$persisted_phase_unref <- re[]
-        return(private$persisted_phase_unref)
+        private$persisted_phase_unref[[block]] <- re[]
+        return(private$persisted_phase_unref[[block]])
       }
 
       re
@@ -445,6 +445,7 @@ Continuous_Electrode <- R6::R6Class(
       results <- array(NA_real_, dinfo$dim[c(1,2,3)])
 
       for(b in blk){
+        # print(b)
         ref_power <- self$reference_power(b)
 
         # find which trials in the block
