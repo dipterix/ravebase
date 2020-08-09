@@ -82,10 +82,7 @@ rave_load <- function(subject, epoch, reference, before_onset, after_onset, elec
 #' @rdname rave_load
 #' @export
 rave_attach <- function(subject, epoch, reference, before_onset, after_onset, electrodes){
-  call <- match.call()
-  call[[1]] <- quote(rave_load)
-  call$attach <- TRUE
-  eval(call)
+  rave_load(subject, epoch, reference, before_onset, after_onset, electrodes, attach = TRUE)
 }
 
 #' @rdname rave_load
@@ -107,142 +104,129 @@ attached_repo <- function(test = FALSE){
 }
 
 
-`_rave_get_meta` <- function(name){
-  repo <- attached_repo()
-  switch(
-    name,
-    'electrodes' = {
-      elec <- repo$subject$meta_data(meta_type = 'electrode')
-      refs <- repo$reference_table
-      merge(elec, refs, all.x = TRUE, by = 'Electrode')
-    }, frequencies = {
-      repo$subject$meta_data(meta_type = 'frequencies')
-    }, time_points = {
-      repo$subject$meta_data(meta_type = 'time_points')
-    }, trials = {
-      repo$epoch$table
-    }
-  )
-}
-
-`_rave_get_valid_electrodes` <- function(electrodes){
-  repo <- attached_repo()
-  if(missing(electrodes)){
-    electrodes <- repo$subject$electrodes
-  }
-  electrodes[!electrodes %in% repo$ignored_electrodes]
-}
-
-
-`_rave_get_loaded_electrodes` <- function(){
-  attached_repo()
-  info <- raveio::get_val2(get('rave_repos'), key = '..current_repo')
-  info$preload_electrodes
-}
-
-`_rave_get_power` <- function(use_cache = TRUE, .old = FALSE, ...){
-
-  if('referenced' %in% names(list(...))){
-    stop('$get_power(referenced=) is no longer supported.')
-  }
-
-  repo <- attached_repo()
-  info <- raveio::get_val2(get('rave_repos'), key = '..current_repo')
-
-  power <- repo$epoch_continuous_signals(electrodes = info$preload_electrodes, dtype = 'power')
-  if(.old){
-    power <- raveio::lazyarray_to_tensor(power, drop_partition = TRUE)
-    power <- power$subset(Electrode ~ Electrode %in% info$preload_electrodes, drop = FALSE, data_only = FALSE)
-  }
-  power
-}
-
-`_rave_get_phase` <- function(use_cache = TRUE, .old = FALSE, ...){
-
-  if('referenced' %in% names(list(...))){
-    stop('$get_phase(referenced=) is no longer supported.')
-  }
-
-  repo <- attached_repo()
-  info <- raveio::get_val2(get('rave_repos'), key = '..current_repo')
-
-  phase <- repo$epoch_continuous_signals(electrodes = info$preload_electrodes, dtype = 'phase')
-  if(.old){
-    phase <- raveio::lazyarray_to_tensor(phase, drop_partition = TRUE)
-    phase <- phase$subset(Electrode ~ Electrode %in% info$preload_electrodes, drop = FALSE, data_only = FALSE)
-  }
-  phase
-}
-
-`_rave_get_voltage` <- function(use_cache = TRUE, .old = FALSE, ...){
-
-  if('referenced' %in% names(list(...))){
-    stop('$get_voltage(referenced=) is no longer supported.')
-  }
-
-  repo <- attached_repo()
-  info <- raveio::get_val2(get('rave_repos'), key = '..current_repo')
-
-  voltage <- repo$epoch_continuous_signals(electrodes = info$preload_electrodes, dtype = 'voltage')
-  if(.old){
-    voltage <- raveio::lazyarray_to_tensor(voltage, drop_partition = TRUE)
-    voltage <- voltage$subset(Electrode ~ Electrode %in% info$preload_electrodes, drop = FALSE, data_only = FALSE)
-  }
-  voltage
-}
-
-`_rave_get_sample_rate` <- function(original = FALSE){
-  repo <- attached_repo()
-  if(original){
-    warning('get_sample_rate(original=TRUE) might return multiple sample rates')
-    unique(repo$subject$raw_sample_rates)
-  } else {
-    repo$subject$power_sample_rate
-  }
-}
-
-`_rave_repository` <- function(){
-  attached_repo()
-}
-
-`_rave_get_preload_info` <- function(){
-  repo <- attached_repo()
-  re <- dipsaus::fastmap2()
-  re$electrodes <- repo$preload_electrodes
-
-  re$epoch_name <- repo$epoch$name
-  re$reference_name <- repo$reference_name
-
-  before_onset <- -repo$time_range[1]
-  after_onset <- repo$time_range[2]
-  srate_power <- repo$subject$power_sample_rate
-  re$time_points_power <- seq.int(- ceiling(before_onset * srate_power), ceiling(after_onset * srate_power))
-  re$time_points_phase <- re$time_points_power
-
-  re$frequencies <- repo$subject$meta_data('frequencies')$Frequency
-  re$condition <- unique(repo$epoch$table$Condition)
-
-  re
-}
-
 #' @rdname rave_load
 #' @export
-rave_attached <- structure(list(), class = c('ravebase_rave_attached', 'ravebase_readonly'))
+rave_attached <- structure(list(
+  any_attached = function(){
+    inherits(attached_repo(test = TRUE), 'RAVERepository')
+  },
+  epoch_names = function(){
+    attached_repo()$subject$epoch_names
+  },
+  reference_names = function(){
+    attached_repo()$subject$reference_names
+  },
+  get_meta = function(name){
+    repo <- attached_repo()
+    repo$get_meta(name)
+  },
+  get_valid_electrodes = function(electrodes){
+    repo <- attached_repo()
+    repo$get_valid_electrodes(electrodes)
+  },
+  get_loaded_electrodes = function(){
+    repo <- attached_repo()
+    repo$get_loaded_electrodes()
+  },
+  get_power = function(use_cache = TRUE, .old = FALSE, ...){
+    if('referenced' %in% names(list(...))){
+      stop('$get_power(referenced=) is no longer supported.')
+    }
 
-#' @export
-`$.ravebase_rave_attached` <- function(x, name){
-  get0(sprintf('_rave_%s', name), ifnotfound = NULL)
-}
+    repo <- attached_repo()
+    repo$get_power(.old = .old, ...)
+  },
+  get_phase = function(use_cache = TRUE, .old = FALSE, ...){
 
-#' @export
-`[[.ravebase_rave_attached` <- `$.ravebase_rave_attached`
+    if('referenced' %in% names(list(...))){
+      stop('$get_phase(referenced=) is no longer supported.')
+    }
 
-#' @export
-names.ravebase_rave_attached <- function(x){
-  c('get_meta', 'get_valid_electrodes', 'get_loaded_electrodes', 'get_power',
-    'get_phase', 'get_voltage', 'get_sample_rate', 'get_preload_info',
-    'repository')
-}
+    repo <- attached_repo()
+    repo$get_phase(.old = .old, ...)
+  },
+  get_voltage = function(use_cache = TRUE, .old = FALSE, ...){
+
+    if('referenced' %in% names(list(...))){
+      stop('$get_voltage(referenced=) is no longer supported.')
+    }
+
+    repo <- attached_repo()
+    repo$get_voltage(.old = .old, ...)
+  },
+  get_sample_rate = function(type = c('ECoG', 'LFP', 'Spike', 'EEG'), time_freq = FALSE){
+    repo <- attached_repo()
+    type <- match.arg(type)
+    repo$get_sample_rate(type = type, time_freq = time_freq)
+  },
+  get_preload_info = function(){
+    repo <- attached_repo()
+    repo$get_preload_info()
+  },
+  get_repository = function(){
+    attached_repo()
+  },
+  get_subject = function(compare = NULL){
+    if( inherits(compare, 'RAVESubject') ){
+      sub_id <- compare$subject_id
+    } else {
+      sub_id <- compare
+    }
+    is_subject <- inherits(sub_id, 'character') && length(sub_id) == 1
+    repo <- attached_repo(test = TRUE)
+
+    if(inherits(repo, 'RAVERepository')){
+      # return current attached subject, but compare the ID
+      return(list(
+        subject = repo$subject,
+        identical = isTRUE(repo$subject$subject_id == sub_id),
+        attached = TRUE
+      ))
+    } else if(is_subject){
+      return(list(
+        subject = as_rave_subject(compare),
+        identical = FALSE,
+        attached = FALSE
+      ))
+    } else {
+      return(list(
+        subject = NULL,
+        identical = FALSE,
+        attached = FALSE
+      ))
+    }
+
+  },
+  get_project = function(compare = NULL){
+    if(inherits(compare, 'RAVEProject')){
+      project_name <- compare$name
+    } else {
+      project_name <- compare
+    }
+    # if(inherits(project_name, 'character') && length(project_name) == 1)
+    repo <- attached_repo(test = TRUE)
+    if(inherits(repo, 'RAVERepository')){
+      # has project
+      return(list(
+        project = repo$project,
+        identical = isTRUE(repo$project$name == project_name),
+        attached = TRUE
+      ))
+    } else if (inherits(project_name, 'character') && length(project_name) == 1) {
+      return(list(
+        project = as_rave_project(compare),
+        identical = FALSE,
+        attached = FALSE
+      ))
+    } else {
+      return(list(
+        project = NULL,
+        identical = FALSE,
+        attached = FALSE
+      ))
+    }
+  }
+), class = c('ravebase_rave_attached', 'ravebase_readonly'))
 
 #' @export
 `$<-.ravebase_readonly` <- function(x, name, value){
@@ -259,16 +243,21 @@ names.ravebase_rave_attached <- function(x){
 
 #' @export
 print.ravebase_rave_attached <- function(x){
-  cat('<rave_attached>              - query data from attached RAVE subject\n')
-  cat('  x$get_power()              - obtain epoched & referenced power data\n')
-  cat('  x$get_phase()              - obtain epoched & referenced phase angles\n')
-  cat('  x$get_voltage()            - obtain epoched & referenced trace data\n')
-  cat('  x$get_meta()               - obtain meta table such as `electrodes`, `trials`, `frequencies` etc.\n')
+  cat('<rave_attached> - query data from attached RAVE subject\n')
+  cat('  x$any_attached()           - return TRUE/FALSE whether any subject attached\n')
+  cat('  x$get_power()              - get epoched & referenced power data\n')
+  cat('  x$get_phase()              - get epoched & referenced phase angles\n')
+  cat('  x$get_voltage()            - get epoched & referenced trace data\n')
+  cat('  x$get_meta()               - get meta table such as `electrodes`, `trials`, `frequencies` etc.\n')
   cat('  x$get_sample_rate()        - get sampling frequency\n')
   cat('  x$get_valid_electrodes()   - get valid electrode numbers\n')
   cat('  x$get_loaded_electrodes()  - get default electrodes to load\n')
   cat('  x$get_preload_info()       - get loader information\n')
-  cat('  x$repository()             - returns current repository object (same as `attached_repo()`)\n')
+  cat('  x$get_repository()         - get current repository object (same as `attached_repo()`)\n')
+  cat('  x$get_subject()            - get or compare current loaded subject\n')
+  cat('  x$get_project()            - get or compare current loaded project\n')
+  cat('  x$epoch_names()        - return all possible epoch names for the attached subject\n')
+  cat('  x$reference_names()    - return all possible reference names for the attached subject\n')
   invisible(x)
 }
 

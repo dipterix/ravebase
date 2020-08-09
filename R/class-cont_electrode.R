@@ -400,7 +400,7 @@ Continuous_Electrode <- R6::R6Class(
       dim[[3]] <- length(tidx)
       dnames$Time <- tidx / srate
 
-      all_electrodes <- self$subject$electrodes
+      all_electrodes <- seq_len(max(self$subject$electrodes))
       dim[[4]] <- length(all_electrodes)
       dnames$Electrode <- all_electrodes
       dim <- dim[!is.na(dim)]
@@ -433,7 +433,7 @@ Continuous_Electrode <- R6::R6Class(
                                   dim = dinfo$dim, dimnames = dinfo$dimnames,
                                   quiet = TRUE, read_only = FALSE)
       dim <- dim(array)
-      electrode_idx <- which(dinfo$dimnames$Electrode == self$number)[[1]]
+      electrode_idx <- self$number
 
       private$referenced_power_cache_file <- array$get_partition_fpath(electrode_idx, full_path = TRUE)
       if(file.exists(private$referenced_power_cache_file)){
@@ -489,7 +489,7 @@ Continuous_Electrode <- R6::R6Class(
                                     dim = dinfo$dim, dimnames = dinfo$dimnames,
                                     quiet = TRUE, read_only = FALSE)
       dim <- dim(array)
-      electrode_idx <- which(dinfo$dimnames$Electrode == self$number)[[1]]
+      electrode_idx <- self$number
 
       private$referenced_phase_cache_file <- array$get_partition_fpath(electrode_idx, full_path = TRUE)
       if(file.exists(private$referenced_phase_cache_file)){
@@ -544,7 +544,7 @@ Continuous_Electrode <- R6::R6Class(
                                     dim = dinfo$dim, dimnames = dinfo$dimnames,
                                     quiet = TRUE, read_only = FALSE)
       dim <- dim(array)
-      electrode_idx <- which(dinfo$dimnames$Electrode == self$number)[[1]]
+      electrode_idx <- self$number
 
       private$referenced_voltage_cache_file <- array$get_partition_fpath(electrode_idx, full_path = TRUE)
       if(file.exists(private$referenced_voltage_cache_file)){
@@ -567,7 +567,7 @@ Continuous_Electrode <- R6::R6Class(
           as.integer(t_pos + tidx)
         }, FUN.VALUE = tidx)
         # freq x time x trial
-        ref_voltage <- ref_voltage[, as.vector(slice_idx)]
+        ref_voltage <- ref_voltage[as.vector(slice_idx)]
         dim(ref_voltage) <- c(dim[2], sum(sel))
         results[sel,] <- t(ref_voltage)
       }

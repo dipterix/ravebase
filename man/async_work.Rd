@@ -12,7 +12,7 @@ async_work(
   .name = "Untitled",
   .rs = FALSE,
   .wait = TRUE,
-  chunk_size = Inf
+  .chunk_size = Inf
 )
 }
 \arguments{
@@ -30,7 +30,7 @@ async_work(
 
 \item{.wait}{whether to wait for the results}
 
-\item{chunk_size}{maximum chunk size per job, must be \code{Inf} if
+\item{.chunk_size}{maximum chunk size per job, must be \code{Inf} if
 \code{.wait} is false}
 }
 \value{

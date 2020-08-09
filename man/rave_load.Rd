@@ -8,7 +8,7 @@
 \alias{rave_attached}
 \title{Load or attach 'RAVE' subject}
 \format{
-An object of class \code{ravebase_rave_attached} (inherits from \code{ravebase_readonly}) of length 0.
+An object of class \code{ravebase_rave_attached} (inherits from \code{ravebase_readonly}) of length 14.
 }
 \usage{
 rave_load(
