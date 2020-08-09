@@ -207,23 +207,45 @@ rave_debug <- function(..., class = NULL, call = NULL, immediate. = TRUE, style 
 }
 
 
+verbose_levels <- structure(1:6, .Label = c("DEBUG", "DEFAULT", "INFO", "WARNING", "ERROR", "FATAL"), class = c("ordered", "factor"))
+
 default_debug <- function(e){
-  cat(e$message, '\n')
+  opt_level <- raveio::raveio_getopt('verbose_level')
+  if(sum(verbose_levels >= opt_level, na.rm = TRUE) >=
+     sum(verbose_levels >= 'DEBUG', na.rm = TRUE)){
+    cat(e$message, '\n')
+  }
 }
 default_info <- function(e){
-  cat(e$message, '\n')
+  opt_level <- raveio::raveio_getopt('verbose_level')
+  if(sum(verbose_levels >= opt_level, na.rm = TRUE) >=
+     sum(verbose_levels >= 'INFO', na.rm = TRUE)){
+    cat(e$message, '\n')
+  }
 }
 default_warn <- function(e){
-  cat(e$message, '\n')
+  opt_level <- raveio::raveio_getopt('verbose_level')
+  if(sum(verbose_levels >= opt_level, na.rm = TRUE) >=
+     sum(verbose_levels >= 'WARNING', na.rm = TRUE)){
+    cat(e$message, '\n')
+  }
 }
 default_error <- function(e){
-  cat(e$message, '\n')
+  opt_level <- raveio::raveio_getopt('verbose_level')
+  if(sum(verbose_levels >= opt_level, na.rm = TRUE) >=
+     sum(verbose_levels >= 'ERROR', na.rm = TRUE)){
+    cat(e$message, '\n')
+  }
   if(!shiny_is_running()){
     stop(e)
   }
 }
 default_fatal <- function(e){
-  cat(e$message, '\n')
+  opt_level <- raveio::raveio_getopt('verbose_level')
+  if(sum(verbose_levels >= opt_level, na.rm = TRUE) >=
+     sum(verbose_levels >= 'FATAL', na.rm = TRUE)){
+    cat(e$message, '\n')
+  }
   stop(e)
 }
 
