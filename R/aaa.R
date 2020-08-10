@@ -5,6 +5,26 @@
 #' @import raveio
 NULL
 
+# --------------------------- Re-export functions ----------------------
+
+#' @export
+raveio::RAVEEpoch
+
+#' @export
+raveio::RAVEPreprocessSettings
+
+#' @export
+raveio::RAVEProject
+
+#' @export
+raveio::RAVESubject
+
+#' @export
+raveio::as_rave_project
+
+#' @export
+raveio::as_rave_subject
+
 
 # --------------------------- Utility functions ------------------------
 
