@@ -3,6 +3,10 @@
 #' @description Load or attach 'RAVE' a subject to current analysis context.
 #' The goal is to allow analysis and visualization to be focused on one that
 #' subject.
+#' @param x either \code{\link{RAVERepository}}, \code{\link{RAVESubject}}
+#' instance or character, or \code{NULL}. For character, it's identical to
+#' \code{subject}; for \code{NULL}, current attached repository will be
+#' detached.
 #' @param subject character, the format is \code{project/subject}, for example
 #' \code{"demo/DemoSubject"}
 #' @param epoch character, name of epoch, located in subject's 'meta' folder,
@@ -16,6 +20,7 @@
 #' @param attach whether to attach loaded repository for analysis
 #' @param test whether return \code{NULL} instead of raising errors when
 #' no subject is attached
+#' @param ... passed to other methods
 #' @return \code{rave_load} and \code{rave_attach} returns loaded repository,
 #' an instance of \code{\link{RAVERepository}} class. \code{attached_repo}
 #' returns currently loaded repository. If no repository loaded then it raises
@@ -81,9 +86,44 @@ rave_load <- function(subject, epoch, reference, before_onset, after_onset, elec
 
 #' @rdname rave_load
 #' @export
-rave_attach <- function(subject, epoch, reference, before_onset, after_onset, electrodes){
-  rave_load(subject, epoch, reference, before_onset, after_onset, electrodes, attach = TRUE)
+rave_attach <- function(x, ...){
+  if(is.null(x)){
+    rave_repos <- get('rave_repos')
+    rave_repos[['..current_repo']] <- list()
+  } else {
+    UseMethod('rave_attach')
+  }
 }
+
+#' @rdname rave_load
+#' @export
+rave_attach.RAVERepository <- function(x, ...){
+  rave_repos <- get('rave_repos')
+
+  if(attach){
+    rave_repos[['..current_repo']] <- list(
+      signature = x$signature,
+      preload_electrodes = x$preload_electrodes,
+      before_onset = -x$time_range[1],
+      after_onset = x$time_range[2]
+    )
+  }
+  invisible(x)
+}
+
+#' @rdname rave_load
+#' @export
+rave_attach.character <- function(x, epoch, reference, before_onset, after_onset, electrodes, ...){
+  rave_load(x, epoch, reference, before_onset, after_onset, electrodes, attach = TRUE)
+}
+
+#' @rdname rave_load
+#' @export
+rave_attach.RAVESubject <- function(x, epoch, reference, before_onset, after_onset, electrodes, ...){
+  rave_load(x, epoch, reference, before_onset, after_onset, electrodes, attach = TRUE)
+}
+
+
 
 #' @rdname rave_load
 #' @export
@@ -242,7 +282,7 @@ rave_attached <- structure(list(
 }
 
 #' @export
-print.ravebase_rave_attached <- function(x){
+print.ravebase_rave_attached <- function(x, ...){
   cat('<rave_attached> - query data from attached RAVE subject\n')
   cat('  x$any_attached()           - return TRUE/FALSE whether any subject attached\n')
   cat('  x$get_power()              - get epoched & referenced power data\n')
@@ -256,8 +296,8 @@ print.ravebase_rave_attached <- function(x){
   cat('  x$get_repository()         - get current repository object (same as `attached_repo()`)\n')
   cat('  x$get_subject()            - get or compare current loaded subject\n')
   cat('  x$get_project()            - get or compare current loaded project\n')
-  cat('  x$epoch_names()        - return all possible epoch names for the attached subject\n')
-  cat('  x$reference_names()    - return all possible reference names for the attached subject\n')
+  cat('  x$epoch_names()            - return all possible epoch names for the attached subject\n')
+  cat('  x$reference_names()        - return all possible reference names for the attached subject\n')
   invisible(x)
 }
 

@@ -15,7 +15,7 @@ test_that("Test Repository", {
   epoch_name <- 'auditory_onset'
   reference_name <- 'default'
 
-  rave_attach(subject = 'demo/DemoSubject',
+  rave_attach('demo/DemoSubject',
               reference = reference_name,
               epoch = epoch_name, before_onset = before_onset,
               after_onset = after_onset, electrodes = 1:20)

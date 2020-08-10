@@ -4,6 +4,9 @@
 \name{rave_load}
 \alias{rave_load}
 \alias{rave_attach}
+\alias{rave_attach.RAVERepository}
+\alias{rave_attach.character}
+\alias{rave_attach.RAVESubject}
 \alias{attached_repo}
 \alias{rave_attached}
 \title{Load or attach 'RAVE' subject}
@@ -21,7 +24,13 @@ rave_load(
   attach = FALSE
 )
 
-rave_attach(subject, epoch, reference, before_onset, after_onset, electrodes)
+rave_attach(x, ...)
+
+\method{rave_attach}{RAVERepository}(x, ...)
+
+\method{rave_attach}{character}(x, epoch, reference, before_onset, after_onset, electrodes, ...)
+
+\method{rave_attach}{RAVESubject}(x, epoch, reference, before_onset, after_onset, electrodes, ...)
 
 attached_repo(test = FALSE)
 
@@ -45,6 +54,13 @@ with file name \code{"epoch_<name>.csv"}}
 possible electrodes}
 
 \item{attach}{whether to attach loaded repository for analysis}
+
+\item{x}{either \code{\link{RAVERepository}}, \code{\link{RAVESubject}}
+instance or character, or \code{NULL}. For character, it's identical to
+\code{subject}; for \code{NULL}, current attached repository will be
+detached.}
+
+\item{...}{passed to other methods}
 
 \item{test}{whether return \code{NULL} instead of raising errors when
 no subject is attached}
