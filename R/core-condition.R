@@ -270,14 +270,3 @@ with_rave_handlers <- function(expr, debug, info, warn, error, fatal, ...){
 }
 
 
-
-#' Exit RAVE main function
-#' @description Only works in RAVE \code{main.R} blocks
-#' @return A signal instance
-#' @export
-exit_main <- function(){
-  cond <- simpleCondition('Main exited', call = NULL)
-  class(cond) <- c('raveExitMain', class(cond))
-  signalCondition(cond)
-  invisible(cond)
-}
